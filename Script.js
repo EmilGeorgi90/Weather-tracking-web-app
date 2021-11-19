@@ -1,3 +1,4 @@
+let myChart;
 function CreateGraph() {
     fetch('./include/SearchCities.php').then(function (response) {
         return response.text();
@@ -85,7 +86,7 @@ function CreateGraph() {
                 }
             },
         };
-        const myChart = new Chart(
+        myChart = new Chart(
             document.getElementById('myChart'),
             config
         );
@@ -106,10 +107,11 @@ setInterval(() => {
                 const sendingData = { temp: data.main.temp, city: data.name };
                 console.log(sendingData);
                 fetch(`./include/Create.php?temp=${sendingData.temp}&city=${sendingData.city}`).then(res => {
-                    CreateGraph();
                     console.log("Request complete! response:", res);
                 });
             })
     }
+    myChart.destroy();
+    CreateGraph();
     //set to 1 minute for testing
 }, 60000);

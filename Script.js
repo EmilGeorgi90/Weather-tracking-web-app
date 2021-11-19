@@ -1,13 +1,16 @@
 function CreateGraph() {
     fetch('./include/SearchCities.php').then(function (response) {
         return response.text();
-    }).then(function (string) {
-        const data = JSON.parse(string);
+    }).then(function (responseData) {
+        const data = JSON.parse(responseData);
+        const temperatures = [];
+        const labels = [];
         const obj = {
             citites: []
         };
+        //rearranging data
         for (let index = 0; index < data.length; index++) {
-            if (obj.citites.filter(function (citites) { return citites.city == data[index].City }).length > 0) {
+            if (obj.citites.filter((citites) => { return citites.city == data[index].City }).length > 0) {
                 let tempCityIndex = obj.citites.findIndex(function (citites) { return citites.city == data[index].City })
                 obj.citites[tempCityIndex].data.push({ date: data[index].CurrentTime, temperature: data[index].Temperature })
             }
@@ -17,20 +20,7 @@ function CreateGraph() {
                 obj.citites[index].data.push({ date: data[index].CurrentTime, temperature: data[index].Temperature })
             }
         }
-        // obj.citites.map((city) => {
-        //     const data = city.data;
-        //     const temperature = [];
-        //     for (let index = 0; index < data.length; index++) {
-        //         const element = data[index];
-        //         labels.push(element.date);
-        //     }
-        //     for (let index = 0; index < data.length; index++) {
-        //         const element = data[index];
-        //         temperature.push(element.value)
-        //     }
-        // })
-
-        const temperatures = [];
+        //splitting temperatures apart
         for (let i = 0; i < obj.citites.length; i++) {
             const tempArr = []
             for (let index = 0; index < obj.citites[i].data.length; index++) {
@@ -39,14 +29,13 @@ function CreateGraph() {
             }
             temperatures.push(tempArr);
         }
-        const dates = [];
         for (let index = 0; index < obj.citites[0].data.length; index++) {
             const element = obj.citites[0].data[index];
             const tempDate = new Date(element.date)
-            dates.push(`${tempDate.getHours()}:${tempDate.getMinutes()}`)
+            labels.push(`${tempDate.getHours()}:${tempDate.getMinutes()}`)
         }
         const chart = {
-            labels: dates,
+            labels: labels,
             datasets: [
                 {
                     label: obj.citites[0].city,
@@ -106,7 +95,7 @@ function CreateGraph() {
 CreateGraph();
 
 const countries = ['London', 'Moskva', 'New York', 'Tokyo', 'Bogota'];
-
+//Insert temperatures data from weather api in a set interval
 setInterval(() => {
     for (let index = 0; index < countries.length; index++) {
         const element = countries[index];
@@ -122,4 +111,5 @@ setInterval(() => {
                 });
             })
     }
-}, 600000);
+    //set to 1 minute for testing
+}, 60000);

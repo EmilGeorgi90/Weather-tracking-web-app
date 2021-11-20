@@ -96,6 +96,7 @@ function CreateGraph() {
 CreateGraph();
 
 const countries = ['London', 'Moskva', 'New York', 'Tokyo', 'Bogota'];
+const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php";
 //Insert temperatures data from weather api in a set interval
 setInterval(() => {
     for (let index = 0; index < countries.length; index++) {
@@ -106,12 +107,13 @@ setInterval(() => {
             }).then((data) => {
                 const sendingData = { temp: data.main.temp, city: data.name };
                 console.log(sendingData);
-                fetch(`./include/Create.php?temp=${sendingData.temp}&city=${sendingData.city}`).then(res => {
-                    console.log("Request complete! response:", res);
+                fetch(`${postDataUrl}?temp=${sendingData.temp}&city=${sendingData.city}`).then(res => {
                 });
             })
     }
+    console.log('data stored');
     myChart.destroy();
     CreateGraph();
+    //3600000 = 1 hour
     //set to 1 minute for testing
 }, 60000);

@@ -1,9 +1,12 @@
 import './App.css';
 import Graph from './Graph';
+import background from './images/weather.png'
 
 function App() {
   return (
-    <Graph />
+    <div style={{ backgroundImage: `url(${background})` }}>
+      <Graph />
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 let myChart;
-function CreateGraph() {
-    fetch('./include/SearchCities.php').then(function (response) {
+function CreateGraph(fecthUrl) {
+    fetch(fecthUrl).then(function (response) {
         return response.text();
     }).then(function (responseData) {
         const data = JSON.parse(responseData);
@@ -11,14 +11,15 @@ function CreateGraph() {
         };
         //rearranging data
         for (let index = 0; index < data.length; index++) {
-            if (obj.citites.filter((citites) => { return citites.city == data[index].City }).length > 0) {
-                let tempCityIndex = obj.citites.findIndex(function (citites) { return citites.city == data[index].City })
-                obj.citites[tempCityIndex].data.push({ date: data[index].CurrentTime, temperature: data[index].Temperature })
+            if (obj.citites.filter((citites) => { return citites.city == data[index].city }).length > 0) {
+                let tempCityIndex = obj.citites.findIndex((citites) => citites.city === data[index].city)
+                obj.citites[tempCityIndex].data.push({ date: data[index].created_at, temperature: data[index].temperature })
             }
             else {
-                obj.citites.push({ city: data[index].City })
-                obj.citites[index].data = [];
-                obj.citites[index].data.push({ date: data[index].CurrentTime, temperature: data[index].Temperature })
+                const tempIndex = obj.citites.push({ city: data[index].city })
+                console.log(tempIndex-1)
+                obj.citites[tempIndex-1].data = [];
+                obj.citites[tempIndex-1].data.push({ date: data[index].created_at, temperature: data[index].temperature })
             }
         }
         //splitting temperatures apart
@@ -93,10 +94,15 @@ function CreateGraph() {
     })
 }
 
-CreateGraph();
 
-const countries = ['London', 'Moskva', 'New York', 'Tokyo', 'Bogota'];
+
 const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php";
+const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
+const countries = ['London', 'Moskva', 'New York', 'Tokyo', 'Bogota'];
+// const fetchUrl = "http://127.0.0.1:8000/api/weather";
+// const postDataUrl = "http://127.0.0.1:8000/api/weather";
+CreateGraph(fetchUrl);
+
 //Insert temperatures data from weather api in a set interval
 setInterval(() => {
     for (let index = 0; index < countries.length; index++) {
@@ -105,15 +111,18 @@ setInterval(() => {
             .then((response) => {
                 return response.json();
             }).then((data) => {
-                const sendingData = { temp: data.main.temp, city: data.name };
-                console.log(sendingData);
-                fetch(`${postDataUrl}?temp=${sendingData.temp}&city=${sendingData.city}`).then(res => {
-                });
+                const sendingData = { Temperature: data.main.temp, City: data.name };
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", postDataUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify({
+                    temperature: sendingData.Temperature, city: sendingData.City
+                }));
             })
     }
     console.log('data stored');
     myChart.destroy();
-    CreateGraph();
+    CreateGraph(fetchUrl);
     //3600000 = 1 hour
     //set to 1 minute for testing
 }, 60000);

@@ -4,8 +4,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 export default class Graph extends PureComponent {
     state = {
         opacity: {
-            uv: 1,
-            pv: 1,
+            Moskva: 1,
+            NewYork: 1,
+            london: 1,
+            Tokyo: 1,
+            Bogota: 1
         },
         isLoaded: false,
         items: [],
@@ -22,28 +25,31 @@ export default class Graph extends PureComponent {
                     };
                     for (let index = 0; index < result.length; index++) {
                         const element = result[index];
-                        const exits = obj.labels.filter((x) => x.CurrentTime === element.CurrentTime);
-                        const tempData = result.filter((x) => x.CurrentTime === element.CurrentTime);
+                        const exits = obj.labels.filter((x) => x.created_at === element.created_at);
+                        const tempData = result.filter((x) => x.created_at === element.created_at);
                         if (exits.length === 0) {
                             const tempJson = {};
                             for (let index = 0; index < tempData.length; index++) {
                                 const dataRow = tempData[index];
-                                tempJson[dataRow.City] = dataRow.Temperature
+                                tempJson[dataRow.city] = dataRow.temperature
                             }
-                            const tempDate = new Date(tempData[0].CurrentTime)
-                            tempJson.CurrentTime = `${tempDate.getHours()}:${tempDate.getMinutes()}`
+                            const tempDate = new Date(tempData[0].created_at)
+                            tempJson.created_at = `${tempDate.getHours()}:${tempDate.getMinutes()}`
                             obj.citites.push(tempJson)
-                            obj.labels.push({ CurrentTime: tempData[0].CurrentTime });
+                            obj.labels.push({ created_at: tempData[0].created_at });
                         }
                     }
                     return obj;
                 }
             )
     }
+
     componentDidMount() {
-        const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
-        const postUrl = "http://localhost/weatherapi/Version_plain/include/Create.php?";
-        const items = this.GetData(fetchUrl).then((response) => {
+        const fetchUrl = "http://127.0.0.1:8000/api/weather";
+        const postDataUrl = "http://127.0.0.1:8000/api/weather";
+        // const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
+        // const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php?";
+        this.GetData(fetchUrl).then((response) => {
             this.setState({
                 isLoaded: true,
                 items: response
@@ -58,21 +64,21 @@ export default class Graph extends PureComponent {
                     .then((response) => {
                         return response.json();
                     }).then((data) => {
-                        const sendingData = { temp: data.main.temp, city: data.name };
-                        fetch(`${postUrl}temp=${sendingData.temp}&city=${sendingData.city}`).then(res => {
-                            this.GetData(fetchUrl).then((response) => {
-                                this.setState({
-                                    isLoaded: true,
-                                    items: response
-                                });
-                            });
-                        });
+                        const sendingData = { Temperature: data.main.temp, City: data.name };
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", postDataUrl, true);
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.send(JSON.stringify({
+                            temperature: sendingData.Temperature, city: sendingData.City
+                        }));
                     })
             }
-            this.setState({
-                isLoaded: true,
-                items
-            });
+            this.GetData(fetchUrl).then((response) => {
+                this.setState({
+                    isLoaded: true,
+                    items: response
+                });
+            })
             //3600000 = 1 hour
             //set to 1 minute for testing
         }, 60000);
@@ -97,7 +103,7 @@ export default class Graph extends PureComponent {
 
     render() {
         const countries = ['London', 'Moscow', 'New York', 'Tokyo', 'Bogota'];
-        const { opacity, error, isLoaded, items } = this.state;
+        const { error, isLoaded, items } = this.state;
         if (error) {
             return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
@@ -105,29 +111,28 @@ export default class Graph extends PureComponent {
         } else {
             return (
                 <div style={{ width: '100%' }}>
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={700}>
                         <LineChart
                             width={500}
                             height={300}
                             data={items.citites}
                             margin={{
-                                top: 30,
-                                right: 30,
-                                left: 20,
+                                top: 70,
+                                right: 70,
+                                left: 70,
                                 bottom: 100,
                             }}
                         >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="CurrentTime" style={{'marginTop': '100px'}} />
-                            {console.log(items.citites)}
+                            <XAxis dataKey="created_at" style={{ 'marginTop': '100px' }} />
                             <YAxis />
                             <Tooltip />
                             <Legend onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} />
-                            <Line type="monotone" dataKey={countries[0]} strokeOpacity={opacity.pv} stroke="rgb(255,105,180)" />
-                            <Line type="monotone" dataKey={countries[1]} strokeOpacity={opacity.uv} stroke="rgb(0,0,139)" />
-                            <Line type="monotone" dataKey={countries[2]} strokeOpacity={opacity.uv} stroke="rgb(128, 29, 215)" />
-                            <Line type="monotone" dataKey={countries[3]} strokeOpacity={opacity.uv} stroke="rgb(0,0,0)" />
-                            <Line type="monotone" dataKey={countries[4]} strokeOpacity={opacity.uv} stroke="rgb(255, 99, 132)" />
+                            <Line type="monotone" dataKey={countries[0]} strokeWidth={8} stroke="rgb(255,105,180)" />
+                            <Line type="monotone" dataKey={countries[1]} strokeWidth={8} stroke="rgb(0,0,139)" />
+                            <Line type="monotone" dataKey={countries[2]} strokeWidth={8} stroke="rgb(128, 29, 215)" />
+                            <Line type="monotone" dataKey={countries[3]} strokeWidth={8} stroke="rgb(0,0,0)" />
+                            <Line type="monotone" dataKey={countries[4]} strokeWidth={8} stroke="rgb(255, 99, 132)" />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>

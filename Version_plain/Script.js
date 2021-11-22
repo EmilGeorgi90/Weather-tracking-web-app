@@ -17,9 +17,9 @@ function CreateGraph(fecthUrl) {
             }
             else {
                 const tempIndex = obj.citites.push({ city: data[index].city })
-                console.log(tempIndex-1)
-                obj.citites[tempIndex-1].data = [];
-                obj.citites[tempIndex-1].data.push({ date: data[index].created_at, temperature: data[index].temperature })
+                console.log(tempIndex - 1)
+                obj.citites[tempIndex - 1].data = [];
+                obj.citites[tempIndex - 1].data.push({ date: data[index].created_at, temperature: data[index].temperature })
             }
         }
         //splitting temperatures apart
@@ -87,24 +87,30 @@ function CreateGraph(fecthUrl) {
                 }
             },
         };
+        if (myChart !== undefined) {
+            myChart.destroy();
+        }
         myChart = new Chart(
             document.getElementById('myChart'),
             config
         );
     })
 }
-
-
-
-const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php";
-const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
 const countries = ['London', 'Moskva', 'New York', 'Tokyo', 'Bogota'];
-// const fetchUrl = "http://127.0.0.1:8000/api/weather";
-// const postDataUrl = "http://127.0.0.1:8000/api/weather";
+// const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php";
+// const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
+const fetchUrl = "http://127.0.0.1:8000/api/weather";
+const postDataUrl = "http://127.0.0.1:8000/api/weather";
 CreateGraph(fetchUrl);
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 //Insert temperatures data from weather api in a set interval
 setInterval(() => {
+    const currTime = new Date();
+    const sqlTimeFormattet = `${currTime.getFullYear()}-${currTime.getMonth() + 1}-${currTime.getDate()} ${currTime.getHours()}:${currTime.getMinutes()}`
     for (let index = 0; index < countries.length; index++) {
         const element = countries[index];
         fetch(`https://api.openweathermap.org/data/2.5/weather?q=${element}&units=metric&appid=77ad54dbd78f34218fa7c02a8e81fc9b`)
@@ -116,13 +122,14 @@ setInterval(() => {
                 xhr.open("POST", postDataUrl, true);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.send(JSON.stringify({
-                    temperature: sendingData.Temperature, city: sendingData.City
+                    temperature: sendingData.Temperature, city: sendingData.City, created_at: sqlTimeFormattet
                 }));
             })
     }
     console.log('data stored');
-    myChart.destroy();
-    CreateGraph(fetchUrl);
+    sleep(10000).then(() => {
+        CreateGraph(fetchUrl);
+    })
     //3600000 = 1 hour
     //set to 1 minute for testing
-}, 60000);
+}, 3600000);

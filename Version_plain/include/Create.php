@@ -2,6 +2,7 @@
     require "connect.php";
     $_POST = json_decode(file_get_contents("php://input"), true);
     try{
+    header('Access-Control-Allow-Origin: *');
     $sql = "INSERT INTO `weather`(`city`, `temperature`) VALUES (?,?);";
     $statement = $conn->prepare($sql);
     $statement->bindParam(1, $_POST['city']);

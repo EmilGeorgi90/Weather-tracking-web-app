@@ -131,5 +131,5 @@ setInterval(() => {
         CreateGraph(fetchUrl);
     })
     //3600000 = 1 hour
-    //set to 1 minute for testing
+    //60000 1 minute for testing
 }, 3600000);

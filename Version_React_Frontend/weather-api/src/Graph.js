@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default class Graph extends PureComponent {
     state = {
@@ -37,7 +37,7 @@ export default class Graph extends PureComponent {
                             }
                             tempJson.created_at = searchTime;
                             obj.citites.push(tempJson);
-                            obj.labels.push({ created_at: tempDate });
+                            obj.labels.push({ created_at: searchTime });
                         }
                     }
                     return obj;
@@ -46,10 +46,10 @@ export default class Graph extends PureComponent {
     }
 
     componentDidMount() {
-        // const fetchUrl = "http://127.0.0.1:8000/api/weather";
-        // const postDataUrl = "http://127.0.0.1:8000/api/weather";
-        const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
-        const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php?";
+        const fetchUrl = "http://127.0.0.1:8000/api/weather";
+        const postDataUrl = "http://127.0.0.1:8000/api/weather";
+        // const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
+        // const postDataUrl = "http://localhost/weatherapi/Version_plain/include/Create.php?";
         this.GetData(fetchUrl).then((response) => {
             this.setState({
                 isLoaded: true,
@@ -80,7 +80,7 @@ export default class Graph extends PureComponent {
                 });
             })
             //3600000 = 1 hour
-            //set to 10 minute for testing
+            //60000 = 1 minute for testing
         }, 3600000);
     }
     handleMouseEnter = (o) => {

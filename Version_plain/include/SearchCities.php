@@ -1,7 +1,6 @@
 <?php
 include "connect.php";
 session_start();
-$currTime = date("Y-m-d");
 $sql = "SELECT * FROM `weather` WHERE DATE(created_at) = CURDATE();";
 $stmt = $conn->prepare($sql);
 $stmt->execute();

@@ -20,7 +20,7 @@ class WeatherController extends Controller
         } catch (\Exception $e) {
             // Return Json Response
             return response()->json([
-                'message' => $e->getMessage()
+                'message' => $request->all()
             ], 500);
         }
     }

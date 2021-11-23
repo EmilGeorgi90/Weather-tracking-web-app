@@ -15,7 +15,7 @@ require_once "include/connect.php";
 
 <body>
     <div id="containerCharts">
-        <canvas id="myChart"></canvas>
+        <canvas id="temperatureGraph"></canvas>
     </div>
     <script src="Script.js"></script>
 </body>

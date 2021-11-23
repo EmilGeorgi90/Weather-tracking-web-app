@@ -3,13 +3,6 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } f
 
 export default class Graph extends PureComponent {
     state = {
-        opacity: {
-            Moskva: 1,
-            NewYork: 1,
-            london: 1,
-            Tokyo: 1,
-            Bogota: 1
-        },
         isLoaded: false,
         items: [],
         error: null,
@@ -46,6 +39,9 @@ export default class Graph extends PureComponent {
     }
 
     componentDidMount() {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
         const fetchUrl = "http://127.0.0.1:8000/api/weather";
         const postDataUrl = "http://127.0.0.1:8000/api/weather";
         // const fetchUrl = "http://localhost/weatherapi/Version_plain/include/SearchCities.php";
@@ -60,50 +56,45 @@ export default class Graph extends PureComponent {
         //Insert temperatures data from weather api in a set interval
         setInterval(() => {
             const currTime = new Date();
-            const sqlTimeFormattet = `${currTime.getFullYear()}-${currTime.getMonth() + 1}-${currTime.getDate()} ${currTime.getHours()}:${currTime.getMinutes()}`
             for (let index = 0; index < countries.length; index++) {
                 const element = countries[index];
                 fetch(`https://api.openweathermap.org/data/2.5/weather?q=${element}&units=metric&appid=77ad54dbd78f34218fa7c02a8e81fc9b`)
                     .then((response) => {
                         return response.json();
                     }).then((data) => {
-                        const sendingData = { Temperature: data.main.temp, City: data.name };
+                        const sendingData = { temperature: data.main.temp, city: data.name, created_at: currTime };
                         var xhr = new XMLHttpRequest();
                         xhr.open("POST", postDataUrl, true);
-                        xhr.send(JSON.stringify({ temperature: sendingData.Temperature, city: sendingData.City, created_at: sqlTimeFormattet }));
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.send(JSON.stringify(sendingData));
                     })
             }
-            this.GetData(fetchUrl).then((response) => {
-                this.setState({
-                    isLoaded: true,
-                    items: response
-                });
+            sleep(8000).then(() => {
+                this.GetData(fetchUrl).then((response) => {
+                    this.setState({
+                        isLoaded: true,
+                        items: response
+                    });
+                })
             })
             //3600000 = 1 hour
             //60000 = 1 minute for testing
-        }, 3600000);
+        }, 1800000);
     }
-    handleMouseEnter = (o) => {
-        const { dataKey } = o;
-        const { opacity } = this.state;
-
-        this.setState({
-            opacity: { ...opacity, [dataKey]: 0.5 },
-        });
-    };
-
-    handleMouseLeave = (o) => {
-        const { dataKey } = o;
-        const { opacity } = this.state;
-
-        this.setState({
-            opacity: { ...opacity, [dataKey]: 1 },
-        });
-    };
+    getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+    }
+    colors = [`rgb(${this.getRandomInt(256)},${this.getRandomInt(256)},${this.getRandomInt(256)})`,
+              `rgb(${this.getRandomInt(256)},${this.getRandomInt(256)},${this.getRandomInt(256)})`,
+              `rgb(${this.getRandomInt(256)},${this.getRandomInt(256)},${this.getRandomInt(256)})`,
+              `rgb(${this.getRandomInt(256)},${this.getRandomInt(256)},${this.getRandomInt(256)})`,
+              `rgb(${this.getRandomInt(256)},${this.getRandomInt(256)},${this.getRandomInt(256)})`
+            ]
 
     render() {
         const countries = ['London', 'Moscow', 'New York', 'Tokyo', 'Bogota'];
         const { error, isLoaded, items } = this.state;
+
         if (error) {
             return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
@@ -137,12 +128,10 @@ export default class Graph extends PureComponent {
                             <XAxis dataKey="created_at" interval="preserveStartEnd" />
                             <YAxis domain={[Math.round(Math.min(...temperatures).toFixed(2) - 5), Math.round(Math.max(...temperatures) + 5)]} />
                             <Tooltip />
-                            <Legend onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave} />
-                            <Line type="monotone" dataKey={countries[0]} strokeWidth={6} stroke="rgb(255,105,180)" />
-                            <Line type="monotone" dataKey={countries[1]} strokeWidth={6} stroke="rgb(0,0,139)" />
-                            <Line type="monotone" dataKey={countries[2]} strokeWidth={6} stroke="rgb(128, 29, 215)" />
-                            <Line type="monotone" dataKey={countries[3]} strokeWidth={6} stroke="rgb(0,0,0)" />
-                            <Line type="monotone" dataKey={countries[4]} strokeWidth={6} stroke="rgb(255, 99, 132)" />
+                            <Legend />
+                            {countries.map((value, index) => {
+                                return <Line key={index} type="monotone" dataKey={countries[index]} strokeWidth={6} stroke={this.colors[index]} />
+                            })}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
